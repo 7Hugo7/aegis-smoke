@@ -10,12 +10,13 @@
 #[cfg(kani)]
 mod harness;
 
-/// Move `amount` units from `*from` to `*to`.
-///
-/// **Buggy on purpose.** This is the bug the loop has to fix:
-///   - It does not check that `*from >= amount` (underflow).
-///   - It does not check that `*to + amount` fits in `u64` (overflow).
 pub fn transfer(from: &mut u64, to: &mut u64, amount: u64) {
+    if amount > *from {
+        return;
+    }
+    if to.checked_add(amount).is_none() {
+        return;
+    }
     *from -= amount;
     *to += amount;
 }
