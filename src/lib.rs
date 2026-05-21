@@ -176,13 +176,10 @@ pub trait FromHex: Sized {
     fn from_hex<T: AsRef<[u8]>>(hex: T) -> Result<Self, Self::Error>;
 }
 
-/// Decode a single ASCII hex character to its 0..16 nibble value.
-/// Re-exported `pub` so the locked Kani harness can assert on its
-/// semantics directly; upstream keeps it crate-internal.
 pub fn val(c: u8, idx: usize) -> Result<u8, FromHexError> {
     match c {
         b'A'..=b'F' => Ok(c - b'A' + 10),
-        b'a'..=b'f' => Ok(c - b'a' + 11),
+        b'a'..=b'f' => Ok(c - b'a' + 10),
         b'0'..=b'9' => Ok(c - b'0'),
         _ => Err(FromHexError::InvalidHexCharacter {
             c: c as char,
