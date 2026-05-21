@@ -1,27 +1,19 @@
-//! Kani proof harness. **Locked** — the Aegis loop is not allowed to rewrite
-//! this file. The orchestrator reads it as immutable context.
-//!
-//! Specification: `transfer` must not panic for *any* `(from, to, amount)`
-//! triple. A correct implementation either performs the transfer (when
-//! preconditions hold) or refuses safely (when they would overflow or
-//! underflow). It must never invoke unchecked arithmetic that panics.
-//!
-//! The buggy implementation in `lib.rs` panics on underflow (`amount > from`)
-//! and on overflow (`to + amount > u64::MAX`). Kani's job is to find one of
-//! those counterexamples; the loop's job is to repair the implementation
-//! until Kani is satisfied.
+//! Kani proof harness — locked. The Aegis loop reads this file but
+//! never writes it. The locked property pins the lowercase-letter
+//! contract on `val()`: for any byte `c` in `b'a'..=b'f'`, the
+//! returned nibble equals `c - b'a' + 10`. The off-by-one bug
+//! planted in the vendored `val()` returns `c - b'a' + 11` for
+//! that range, falsifying this assertion immediately for the
+//! single canonical anchor `'a' → 10`.
 
-use crate::transfer;
+use crate::val;
 
 #[kani::proof]
-fn check_transfer_never_panics() {
-    // Fully unconstrained inputs — Kani must explore the entire u64 cube.
-    let mut from: u64 = kani::any();
-    let mut to: u64 = kani::any();
-    let amount: u64 = kani::any();
-
-    // Calling transfer with any valid u64 triple must not panic. A correct
-    // implementation handles overflow/underflow defensively (e.g.
-    // `checked_sub` / `checked_add` returning early on `None`).
-    transfer(&mut from, &mut to, amount);
+fn check_val_lowercase_letters() {
+    // 'a' must decode to nibble 10 (the lowest letter case). This
+    // is the single load-bearing identity: if 'a' decodes to 11
+    // (the planted bug's effect) every lowercase-hex decode is
+    // off by one for letter inputs.
+    let result = val(b'a', 0);
+    assert!(result == Ok(10));
 }

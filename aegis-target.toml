@@ -1,23 +1,37 @@
-# Aegis target manifest. Tells the orchestrator which file is editable, which
-# files are locked, which harness to verify, and which tests gate behaviour.
-# Read by the loop at run start; never written.
+# Aegis target manifest — fifth vendored real-crate target.
+#
+# Source crate: `hex` 0.4.3 (KokaKiwi/rust-hex), MIT/Apache-2.0.
+# The vendored copy has a planted off-by-one bug in `val()`'s
+# lowercase-letter case: `Ok(c - b'a' + 11)` instead of
+# `Ok(c - b'a' + 10)`. Effect: `val(b'a', _) == Ok(11)` rather
+# than `Ok(10)`, so every decode that contains a lowercase hex
+# letter (a-f) produces the wrong nibble.
+#
+# Note: `val` is `fn val` upstream (crate-internal). The vendored
+# copy adds a `pub` modifier so the locked Kani harness can
+# assert on it directly. Vendoring-only API change.
+#
+# `serde.rs` removed from the source tree — depends on the
+# optional `serde` feature which we don't enable; lib.rs's
+# `pub mod serde` is `cfg(feature = "serde")`-gated so the
+# absence is fine.
+#
+# Locked harness: `val(b'a', 0) == Ok(10)`. Pure-anchor check,
+# no symbolic input. Locked tests pin the lowercase + uppercase
+# letter tables, the digit table, and two real-decode vectors.
+#
+# Used by `lessons/0036` (Phase-A real-crate datapoint #5).
 
 [target]
-name = "transfer"
-# The single file the loop is allowed to rewrite.
+name = "hex-real"
 editable = "src/lib.rs"
-# Files the loop must read but never write.
-locked = ["src/harness.rs", "tests/integration.rs"]
+locked = ["src/error.rs", "src/harness.rs", "tests/integration.rs"]
 
 [verifier]
 kind = "kani"
-# Harness function name — passed to `cargo kani --harness`.
-harness = "check_transfer_never_panics"
-# Locked file whose contents are sent to the repair loop as verifier context.
+harness = "check_val_lowercase_letters"
 context = "src/harness.rs"
 
 [behaviour]
-# Command used for the behaviour gate. Run from the workdir copy of the crate.
 test_command = "cargo test --tests"
-# Locked file whose contents are sent to the repair loop as behaviour context.
 context = "tests/integration.rs"

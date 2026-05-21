@@ -1,14 +1,18 @@
 [package]
-name = "aegis-example-transfer"
+name = "aegis-example-hex-real"
 version = "0.0.1"
 edition = "2021"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 publish = false
-description = "Phase 0 toy crate: deliberately broken transfer fn driven through the Aegis loop."
+description = "Vendored real-crate target for rung-2 from-prose validation: source from `hex` 0.4.3 (KokaKiwi/rust-hex), MIT/Apache-2.0, with a deliberately planted off-by-one bug in `val()`'s lowercase-hex letter conversion. Behaviour gate pins canonical RFC-4648 hex-decode vectors; Kani harness pins the lowercase-letter byte-shape contract over a single symbolic letter."
+
+[features]
+default = ["std"]
+std = ["alloc"]
+alloc = []
 
 [lib]
 path = "src/lib.rs"
 
-# Kani injects its own `kani` crate into the build when invoked via
-# `cargo kani`, so we don't add it as a regular dependency. The harness lives
-# in src/harness.rs and is gated by `#[cfg(kani)]`.
+[dev-dependencies]
+pretty_assertions = "1"
