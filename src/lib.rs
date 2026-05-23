@@ -19,3 +19,5 @@ pub fn transfer(from: &mut u64, to: &mut u64, amount: u64) {
     *from -= amount;
     *to += amount;
 }
+
+// smoke test 2026-05-23 — verifying the live loop end-to-end.
