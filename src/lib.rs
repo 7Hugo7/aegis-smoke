@@ -19,3 +19,5 @@ pub fn transfer(from: &mut u64, to: &mut u64, amount: u64) {
     *from -= amount;
     *to += amount;
 }
+
+// trigger: managed-path prod validation run
